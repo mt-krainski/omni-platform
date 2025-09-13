@@ -1,4 +1,5 @@
 import { Page, expect } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 interface MailpitRecipient {
   Name: string;
@@ -41,7 +42,9 @@ export async function login(page: Page, userEmail: string) {
   await page.getByRole("button", { name: "Send verification code" }).click();
 
   await expect(page).toHaveURL(/\/auth\/verify-otp(\?.*)?$/);
-  await expect(page.getByText("Enter verification code")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Enter verification code" })
+  ).toBeVisible();
 
   // Fetch emails from Mailpit
   const mailpitResponse = await fetch(
@@ -74,4 +77,30 @@ export async function login(page: Page, userEmail: string) {
     .fill(verificationCode);
 
   await page.getByRole("button", { name: "Verify" }).click();
+}
+
+export async function ensureUserExists(userEmail: string): Promise<void> {
+  // In this application we don't allow for end-users to create their own accounts.
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment."
+    );
+  }
+
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const { error: createErr } = await adminClient.auth.admin.createUser({
+    email: userEmail,
+    email_confirm: true,
+  });
+
+  // If the user already exists, ignore error; otherwise bubble up
+  if (createErr && !/already registered|exists/i.test(createErr.message)) {
+    throw createErr;
+  }
 }

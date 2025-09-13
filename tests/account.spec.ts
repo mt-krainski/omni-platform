@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { login } from "../src/test-utils/playwright";
+import { login, ensureUserExists } from "../src/test-utils/playwright";
 
 test("has title", async ({ page }) => {
   await page.goto("/");
@@ -13,6 +13,8 @@ test("create account, logout, login", async ({ page }) => {
   const testUserName = `Test user - ${runId}`;
 
   await page.goto("/", { waitUntil: "networkidle" });
+
+  await ensureUserExists(testUserEmail);
 
   await login(page, testUserEmail);
 
