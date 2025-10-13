@@ -48,7 +48,7 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
     "@eslint/eslintrc": "^3",
-    "@playwright/test": "^1.55.1",
+    "@playwright/test": "^1.56.0",
     "@storybook/addon-a11y": "^9.1.8",
     "@storybook/addon-docs": "^9.1.7",
     "@storybook/addon-onboarding": "^9.1.8",
